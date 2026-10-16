@@ -1,0 +1,15 @@
+# 运行时数据（含访客日志，勿公开）
+data/
+pull_data/
+
+# Python
+__pycache__/
+*.pyc
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.log
+*.tmp
