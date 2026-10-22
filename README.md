@@ -1,4 +1,4 @@
-# 项目实施作战室（报价提单系统 V3 本地版）
+# 项目实施工作台（本地版）
 
 「项目实施模拟 · 项目经理作战室」本地一体化服务：静态页面 + 实时拉取代理 + 访客监控后台。
 
@@ -17,16 +17,16 @@ python server.py 8899
 
 打开 http://localhost:8899/index.html#/pmsim
 
-Windows 用户直接双击 `启动项目实施作战室.bat`。
+Windows 用户直接双击 `启动项目实施工作台.bat`。
 
 ## 管理员后台
 
-访问 `http://localhost:8899/admin/logs`，默认账号密码：
+访问 `http://localhost:8899/admin/logs`，账号密码：
 
 - 账号：`admin`
-- 密码：`pmsim2026`
+- 密码：见 `admin.env` 文件里的 `ADMIN_PASSWORD`
 
-> ⚠️ 上线前请修改 `server.py` 中的默认密码。
+> 口令不写在 `server.py` 里。优先级：环境变量 `ADMIN_PASSWORD` > 同目录 `admin.env` > 启动时随机生成（仅控制台显示）。改口令只需编辑 `admin.env` 后重启服务。
 
 ## 配置项
 
@@ -52,7 +52,7 @@ cpolar http 8899
 ├── index.html              入口页（Vue3 hash 路由）
 ├── assets/                 前端构建产物
 ├── server.py               一体化服务（静态 + pull-api + 访客监控）
-├── 启动项目实施作战室.bat    Windows 一键启动
+├── 启动项目实施工作台.bat    Windows 一键启动
 ├── data/                   访问日志与存档（运行时生成，已被 .gitignore 忽略）
 └── 使用说明.md              详细说明
 ```

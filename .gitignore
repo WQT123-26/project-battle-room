@@ -2,6 +2,15 @@
 data/
 pull_data/
 
+# 管理员口令，勿提交
+admin.env
+
+# 本机地址备忘 / 备份 / 下载的隧道客户端
+当前公网地址.txt
+server.py.bak
+cloudflared/
+ngrok/
+
 # Python
 __pycache__/
 *.pyc

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-项目实施作战室 · 一体化本地服务（含访客监控）
+项目实施工作台 · 一体化本地服务（含访客监控）
 1) 静态托管本目录（Vue3 构建产物，必须以 HTTP 方式访问）
 2) 内置 /pull-api 网关，让「⚡ 实时拉取」页面可用：
    - 默认转发到本机拉取代理 http://127.0.0.1:8766（若已安装并运行官方 pull-api）
@@ -10,7 +10,7 @@
 启动：python server.py [端口]   默认 8899
 """
 import json, os, sys, time, re, urllib.request, urllib.error, urllib.parse
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import HTTPServer, ThreadingHTTPServer, SimpleHTTPRequestHandler
 from datetime import datetime
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8899
@@ -19,6 +19,31 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 LOGS_FILE = os.path.join(DATA_DIR, "access_logs.jsonl")
 os.makedirs(DATA_DIR, exist_ok=True)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+# ---------- 管理员口令：不再硬编码 ----------
+# 优先级：环境变量 ADMIN_PASSWORD > 同目录 admin.env 文件 > 启动时随机生成（打印在控制台）
+ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
+
+def _load_admin_password():
+    pwd = os.environ.get("ADMIN_PASSWORD", "").strip()
+    if pwd:
+        return pwd, "环境变量 ADMIN_PASSWORD"
+    env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "admin.env")
+    try:
+        with open(env_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                if k.strip() == "ADMIN_PASSWORD" and v.strip():
+                    return v.strip(), "admin.env"
+    except FileNotFoundError:
+        pass
+    import secrets
+    return secrets.token_urlsafe(9), "随机生成（仅本次运行有效）"
+
+ADMIN_PASSWORD, ADMIN_PASSWORD_SOURCE = _load_admin_password()
 
 class Handler(SimpleHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
@@ -155,7 +180,7 @@ th{{text-align:left;padding:12px 8px;background:#f8f9fa;border-bottom:2px solid 
                 try:
                     creds = base64.b64decode(auth[6:]).decode()
                     user, pwd = creds.split(":", 1)
-                    if user == "admin" and pwd == "pmsim2026":
+                    if user == ADMIN_USER and pwd == ADMIN_PASSWORD:
                         self.send_response(200)
                         self.send_header("Content-Type", "text/html; charset=utf-8")
                         self._cors()
@@ -320,10 +345,13 @@ def parse_ticket(html):
     return fields
 
 if __name__ == "__main__":
-    print(f"✅ 项目实施作战室 已启动:")
+    print(f"✅ 项目实施工作台 已启动:")
     print(f"   公网访问：http://localhost:{PORT}/index.html#/pmsim")
     print(f"   实时拉取：http://localhost:{PORT}/pull-api/ping")
     print(f"   管理员后台：http://localhost:{PORT}/admin/logs")
-    print(f"   管理员账号：admin / pmsim2026")
+    print(f"   管理员账号：{ADMIN_USER} / {ADMIN_PASSWORD}")
+    print(f"   口令来源：{ADMIN_PASSWORD_SOURCE}（改口令请编辑 admin.env 或设环境变量 ADMIN_PASSWORD）")
     print(f"\n📊 访客监控已启用，所有访问将记录到 data/access_logs.jsonl")
-    HTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
+    srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+    srv.daemon_threads = True
+    srv.serve_forever()

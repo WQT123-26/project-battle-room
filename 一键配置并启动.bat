@@ -105,7 +105,7 @@ if "!PUBURL!"=="" (
     echo   SUCCESS! Your public URL:
     echo   !PUBURL!/index.html#/pmsim
     echo   Visitor monitor: http://127.0.0.1:8899/admin/logs
-    echo   Login: admin / pmsim2026  (change the default password!)
+    echo   Login: admin / Wqt158205
     echo   Keep BOTH black windows open or the URL will stop working.
     echo ============================================================
 )
