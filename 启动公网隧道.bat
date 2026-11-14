@@ -32,7 +32,7 @@ echo.
 REM ---------- 2/2 SSH 隧道 ----------
 echo [2/2] Starting SSH tunnel via serveo.net (FIXED subdomain)...
 echo       Public page  : https://zhandoushi.serveousercontent.com/index.html#/pmsim
-echo       Admin  login : admin / Wqt158205
+echo       Admin  login : admin / see admin.env
 echo       Keep BOTH black windows open or the URL stops working.
 echo.
 
