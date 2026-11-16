@@ -1,0 +1,45 @@
+name: scrub-history
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install git-filter-repo
+        run: pip install git-filter-repo
+
+      - name: Clone full mirror
+        run: |
+          git clone --mirror "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" repo.git
+
+      - name: Rewrite history
+        run: |
+          cd repo.git
+          printf 'pmsim2026==>ROTATED_SECRET_REMOVED\nWqt158205==>ROTATED_SECRET_REMOVED\n' > /tmp/repl.txt
+          git filter-repo --replace-text /tmp/repl.txt --force
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+
+      - name: Verify no residual secrets
+        run: |
+          cd repo.git
+          fail=0
+          for s in pmsim2026 Wqt158205; do
+            n=$(git log --all --oneline -S "$s" | wc -l)
+            echo "secret $s -> $n commits"
+            if [ "$n" -ne 0 ]; then fail=1; fi
+          done
+          echo "commit count: $(git rev-list --count --all)"
+          if [ "$fail" -ne 0 ]; then echo "RESIDUAL_FOUND"; exit 1; fi
+          echo "VERIFY_OK"
+
+      - name: Force push rewritten history
+        run: |
+          cd repo.git
+          git push --force origin --all
+          git push --force origin --tags
+          echo "PUSH_DONE"
